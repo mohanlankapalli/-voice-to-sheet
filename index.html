@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+<title>Voice to Sheet</title>
+
+<style>
+body{
+font-family:Arial;
+padding:20px;
+text-align:center;
+}
+
+button{
+padding:15px 25px;
+font-size:20px;
+margin:10px;
+}
+
+#status{
+margin-top:20px;
+font-size:18px;
+}
+
+#history{
+margin-top:20px;
+text-align:left;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>Voice To Google Sheet</h2>
+
+<button onclick="startListening()">
+Start
+</button>
+
+<button onclick="stopListening()">
+Stop
+</button>
+
+<p id="status">Idle</p>
+
+<div id="history"></div>
+
+<script>
+
+const WEB_APP_URL =
+"https://script.google.com/macros/s/AKfycbxEjhtZA21DjU2N1mF8tOXzSKCcJpdb3OO6BhYl2Lkb2wRtUnQaDRzkhR7qU5bJ9_TNHg/exec";
+
+let recognition;
+
+function startListening() {
+
+recognition =
+new webkitSpeechRecognition();
+
+recognition.lang='en-IN';
+recognition.continuous=true;
+recognition.interimResults=false;
+
+document.getElementById("status")
+.innerHTML="Listening...";
+
+recognition.onresult = function(event){
+
+let text =
+event.results[event.results.length-1][0]
+.transcript.trim();
+
+saveRecord(text);
+
+};
+
+recognition.onerror=function(e){
+console.log(e);
+};
+
+recognition.onend=function(){
+
+recognition.start();
+
+};
+
+recognition.start();
+}
+
+function stopListening(){
+
+if(recognition){
+recognition.onend=null;
+recognition.stop();
+}
+
+document.getElementById("status")
+.innerHTML="Stopped";
+}
+
+function saveRecord(text){
+
+let words=text.split(" ");
+
+if(words.length<3){
+alert("Speak: Name Amount City");
+return;
+}
+
+let name=words[0];
+let amount=words[1];
+let city=words.slice(2).join(" ");
+
+let payload={
+name:name,
+city:city,
+amount:amount
+};
+
+fetch(WEB_APP_URL,{
+method:"POST",
+body:JSON.stringify(payload)
+})
+.then(r=>r.json())
+.then(data=>{
+
+document.getElementById("history")
+.innerHTML=
+"<p>✅ "+text+"</p>"
++
+document.getElementById("history")
+.innerHTML;
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
